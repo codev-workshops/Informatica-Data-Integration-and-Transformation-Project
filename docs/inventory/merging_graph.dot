@@ -1,0 +1,19 @@
+graph merging {
+  layout=neato;
+  overlap=false;
+  node [shape=box,style=filled,fillcolor="#c8e6c9",fontname=Helvetica];
+  edge [fontname=Helvetica,fontsize=10];
+  "m_FILTER_TRANSFORMATION";
+  "m_Router_transfromation";
+  "m_NORMAL_JOIN";
+  "m_DETAILS_OUTER_JOIN";
+  "m_FULL_OUTER_JOIN";
+  "m_MASTER_OUTER_JOIN";
+  "m_FILTER_TRANSFORMATION" -- "m_Router_transfromation" [label="L05",penwidth=2];
+  "m_DETAILS_OUTER_JOIN" -- "m_FULL_OUTER_JOIN" [label="L02",penwidth=2];
+  "m_DETAILS_OUTER_JOIN" -- "m_MASTER_OUTER_JOIN" [label="L02",penwidth=2];
+  "m_DETAILS_OUTER_JOIN" -- "m_NORMAL_JOIN" [label="L02",penwidth=2];
+  "m_FULL_OUTER_JOIN" -- "m_MASTER_OUTER_JOIN" [label="L02",penwidth=2];
+  "m_FULL_OUTER_JOIN" -- "m_NORMAL_JOIN" [label="L02",penwidth=2];
+  "m_MASTER_OUTER_JOIN" -- "m_NORMAL_JOIN" [label="L02",penwidth=2];
+}
