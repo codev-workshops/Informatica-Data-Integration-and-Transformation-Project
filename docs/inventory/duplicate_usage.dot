@@ -1,0 +1,19 @@
+digraph usage {
+  rankdir=LR;
+  node [fontname=Helvetica];
+  graph [fontname=Helvetica];
+  "L05" [shape=box,style=filled,fillcolor="#ffe0b2",label="L05\nOutput Expression"];
+  "m_Router_transfromation:exp_router_trans" [shape=ellipse,style=filled,fillcolor="#bbdefb",label="exp_router_trans\n(m_Router_transfromation)"];
+  "L05" -> "m_Router_transfromation:exp_router_trans";
+  "m_FILTER_TRANSFORMATION:exp_filter_trans" [shape=ellipse,style=filled,fillcolor="#bbdefb",label="exp_filter_trans\n(m_FILTER_TRANSFORMATION)"];
+  "L05" -> "m_FILTER_TRANSFORMATION:exp_filter_trans";
+  "L02" [shape=box,style=filled,fillcolor="#ffe0b2",label="L02\nJoin Condition"];
+  "m_MASTER_OUTER_JOIN:jnr_MASTER_OUTER_JOIN" [shape=ellipse,style=filled,fillcolor="#bbdefb",label="jnr_MASTER_OUTER_JOIN\n(m_MASTER_OUTER_JOIN)"];
+  "L02" -> "m_MASTER_OUTER_JOIN:jnr_MASTER_OUTER_JOIN";
+  "m_FULL_OUTER_JOIN:jnr_FULL_OUTER_JOIN" [shape=ellipse,style=filled,fillcolor="#bbdefb",label="jnr_FULL_OUTER_JOIN\n(m_FULL_OUTER_JOIN)"];
+  "L02" -> "m_FULL_OUTER_JOIN:jnr_FULL_OUTER_JOIN";
+  "m_DETAILS_OUTER_JOIN:jnr_DETAILS_OUTER_JOIN" [shape=ellipse,style=filled,fillcolor="#bbdefb",label="jnr_DETAILS_OUTER_JOIN\n(m_DETAILS_OUTER_JOIN)"];
+  "L02" -> "m_DETAILS_OUTER_JOIN:jnr_DETAILS_OUTER_JOIN";
+  "m_NORMAL_JOIN:jnr_NORMAL_JOIN" [shape=ellipse,style=filled,fillcolor="#bbdefb",label="jnr_NORMAL_JOIN\n(m_NORMAL_JOIN)"];
+  "L02" -> "m_NORMAL_JOIN:jnr_NORMAL_JOIN";
+}
