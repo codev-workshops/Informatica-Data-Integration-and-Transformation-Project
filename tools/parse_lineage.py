@@ -131,10 +131,25 @@ def parse_workflows(root):
                 "subtype": cr.get("CONNECTIONSUBTYPE"),
                 "variable": cr.get("VARIABLE"),
             })
+        # target load behaviour from writer session extensions
+        writers = []
+        for ext in s.iter("SESSIONEXTENSION"):
+            if ext.get("TYPE") != "WRITER":
+                continue
+            attrs = {a.get("NAME"): a.get("VALUE") for a in ext.findall("ATTRIBUTE")}
+            load = attrs.get("Target load type", "")
+            ops = [k.split()[0] for k in ("Update as Update", "Update as Insert",
+                    "Update else Insert", "Delete") if attrs.get(k) == "YES"]
+            writers.append({
+                "target": ext.get("SINSTANCENAME"),
+                "load": load,
+                "truncate": attrs.get("Truncate target table option", "NO"),
+            })
         sessions[s.get("NAME")] = {
             "mapping": s.get("MAPPINGNAME"),
             "reusable": s.get("REUSABLE"),
             "connections": conns,
+            "writers": writers,
         }
 
     for w in folder.iter("WORKFLOW"):
@@ -145,14 +160,23 @@ def parse_workflows(root):
                 "taskname": ti.get("TASKNAME"),
                 "type": ti.get("TASKTYPE"),
                 "enabled": ti.get("ISENABLED"),
+                "fail_parent_if_fails": ti.get("FAIL_PARENT_IF_INSTANCE_FAILS"),
+                "fail_parent_if_not_run": ti.get("FAIL_PARENT_IF_INSTANCE_DID_NOT_RUN"),
+                "input_link_and": ti.get("TREAT_INPUTLINK_AS_AND"),
             })
         links = [(l.get("FROMTASK"), l.get("TOTASK"), l.get("CONDITION"))
                  for l in w.findall("WORKFLOWLINK")]
         sched = w.find("SCHEDULER")
+        sched_type = None
+        if sched is not None:
+            si = sched.find("SCHEDULEINFO")
+            sched_type = si.get("SCHEDULETYPE") if si is not None else None
         workflows[w.get("NAME")] = {
             "tasks": task_insts,
             "links": links,
             "scheduler": sched.get("SCHEDULERNAME") if sched is not None else None,
+            "scheduler_type": sched_type,
+            "suspend_on_error": w.get("SUSPEND_ON_ERROR"),
             "valid": w.get("ISVALID"),
             "enabled": w.get("ISENABLED"),
         }
@@ -268,6 +292,36 @@ def build_overview_dot(sources, targets, mappings, sessions, workflows):
     return "\n".join(L)
 
 
+def build_workflow_dot(sessions, workflows, mappings):
+    """Workflow/session task-dependency graph: per-workflow Start -> task links."""
+    L = ['digraph workflow_tasks {', '  rankdir=LR;', '  compound=true;',
+         '  node [fontname="Helvetica", fontsize=10];',
+         '  graph [fontname="Helvetica"];']
+    for i, (wname, w) in enumerate(workflows.items()):
+        L.append(f'  subgraph cluster_wf_{i} {{')
+        L.append(f'    label="{wname}  (schedule: {w.get("scheduler_type") or "?"})";'
+                 ' style="rounded"; color="#188038"; fontcolor="#188038";')
+        for ti in w["tasks"]:
+            nid = f'"{wname}::{ti["name"]}"'
+            if ti["type"] == "Start":
+                L.append(f'    {nid} [label="{ti["name"]}", shape=circle, style=filled, fillcolor="#188038", fontcolor=white, width=0.5];')
+            else:
+                mp = sessions.get(ti["taskname"], {}).get("mapping", "")
+                reuse = "reusable" if sessions.get(ti["taskname"], {}).get("reusable") == "YES" else "non-reusable"
+                L.append(f'    {nid} [label="{ti["name"]}\\n({ti["type"]}, {reuse})\\nmapping: {mp}", '
+                         'shape=box, style="rounded,filled", fillcolor="#e6f4ea"];')
+        for frm, to, cond in w["links"]:
+            # find target task instance to annotate fail-propagation
+            to_ti = next((t for t in w["tasks"] if t["name"] == to), None)
+            elabel = cond if cond else ""
+            if to_ti and to_ti.get("fail_parent_if_fails") == "YES":
+                elabel = (elabel + "  " if elabel else "") + "[fails→wf fails]"
+            L.append(f'    "{wname}::{frm}" -> "{wname}::{to}" [label="{elabel}"];')
+        L.append('  }')
+    L.append('}')
+    return "\n".join(L)
+
+
 # ---------------------------------------------------------------------------
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
@@ -291,6 +345,83 @@ def main():
         fh.write(build_dot(sources, targets, mappings, sessions, workflows))
     with open(os.path.join(OUT_DIR, "lineage_overview.dot"), "w") as fh:
         fh.write(build_overview_dot(sources, targets, mappings, sessions, workflows))
+    with open(os.path.join(OUT_DIR, "workflow_tasks.dot"), "w") as fh:
+        fh.write(build_workflow_dot(sessions, workflows, mappings))
+
+    # ---- Workflow / session task-dependency doc ----
+    wm = []
+    W = wm.append
+    W("# Workflow / Session Task-Dependency Graph\n")
+    W("Task-level orchestration for every workflow in the *Explore Informatica* folder, generated "
+      "from `WorkFlow_ExploreInformatica.XML` by `tools/parse_lineage.py`.\n")
+    W("Each workflow starts at the built-in **Start** task and links to its **Session** task via a "
+      "conditional `WORKFLOWLINK`. The session then runs a mapping (see "
+      "[`DEPENDENCY_LINEAGE.md`](DEPENDENCY_LINEAGE.md) for the data lineage).\n")
+    W("![Workflow task-dependency graph](workflow_tasks.png)\n")
+
+    W("## 1. Summary\n")
+    n_links = sum(len(w["links"]) for w in workflows.values())
+    n_tasks = sum(len(w["tasks"]) for w in workflows.values())
+    W(f"- **Workflows:** {len(workflows)}")
+    W(f"- **Task instances:** {n_tasks} (each workflow = 1 `Start` + 1 `Session`)")
+    W(f"- **Task links (WORKFLOWLINK):** {n_links}")
+    W("- **Non-`Start`/`Session` task types** (Command, Decision, Timer, Control, Assignment, Event, Worklet): **none**")
+    W(f"- **Schedule type:** all `{sorted({w.get('scheduler_type') for w in workflows.values()})[0]}` (run manually / on demand)\n")
+    W("> All links are **unconditional** (empty `CONDITION`), so each session runs whenever its "
+      "workflow starts. Every workflow is an independent, single-session pipeline — there are no "
+      "cross-workflow task dependencies in this folder.\n")
+
+    W("## 2. Workflow → task links\n")
+    W("| Workflow | Schedule | Link | Condition | Session reusable | Fail wf if session fails | Fail wf if session skipped |")
+    W("|---|---|---|---|---|---|---|")
+    for wname, w in workflows.items():
+        sess = [t for t in w["tasks"] if t["type"] == "Session"]
+        for frm, to, cond in w["links"]:
+            to_ti = next((t for t in w["tasks"] if t["name"] == to), {})
+            reuse = sessions.get(to_ti.get("taskname"), {}).get("reusable", "")
+            W(f"| `{wname}` | {w.get('scheduler_type')} | `{frm}` → `{to}` | "
+              f"{cond or '*(none)*'} | {reuse} | {to_ti.get('fail_parent_if_fails','')} | "
+              f"{to_ti.get('fail_parent_if_not_run','')} |")
+    W("")
+
+    W("## 3. Session target-load behaviour\n")
+    W("From each session's writer extensions (truncate-before-load and load type per target).\n")
+    W("| Session | Target | Load type | Truncate target |")
+    W("|---|---|---|---|")
+    for sname, s in sessions.items():
+        if not s.get("writers"):
+            continue
+        for wr in s["writers"]:
+            W(f"| `{sname}` | `{wr['target']}` | {wr['load'] or 'Normal'} | {wr['truncate']} |")
+    W("")
+
+    W("## 4. Per-workflow task flow\n")
+    for wname, w in workflows.items():
+        sess = next((t for t in w["tasks"] if t["type"] == "Session"), None)
+        mp = sessions.get(sess["taskname"], {}).get("mapping") if sess else None
+        W(f"### `{wname}`\n")
+        W(f"- Schedule: `{w.get('scheduler_type')}` · Valid: {w.get('valid')} · "
+          f"Enabled: {w.get('enabled')} · Suspend on error: {w.get('suspend_on_error')}")
+        W(f"- Runs mapping: `{mp}`" + ("" if mp in mappings else " ⚠️ *(mapping not in export)*"))
+        W("")
+        W("```mermaid")
+        W("flowchart LR")
+        for ti in w["tasks"]:
+            nid = mmid(wname) + "__" + mmid(ti["name"])
+            if ti["type"] == "Start":
+                W(f'    {nid}(("{ti["name"]}"))')
+            else:
+                W(f'    {nid}["{ti["name"]}<br/><i>{ti["type"]}</i>"]')
+        for frm, to, cond in w["links"]:
+            fid = mmid(wname) + "__" + mmid(frm)
+            tid = mmid(wname) + "__" + mmid(to)
+            arrow = f'-- "{cond}" -->' if cond else "-->"
+            W(f"    {fid} {arrow} {tid}")
+        W("```")
+        W("")
+
+    with open(os.path.join(OUT_DIR, "WORKFLOW_TASKS.md"), "w") as fh:
+        fh.write("\n".join(wm) + "\n")
 
     # Markdown
     md = []

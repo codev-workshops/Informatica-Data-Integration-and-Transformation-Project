@@ -1,0 +1,90 @@
+digraph workflow_tasks {
+  rankdir=LR;
+  compound=true;
+  node [fontname="Helvetica", fontsize=10];
+  graph [fontname="Helvetica"];
+  subgraph cluster_wf_0 {
+    label="wf_ROUTER_TRANS  (schedule: ONDEMAND)"; style="rounded"; color="#188038"; fontcolor="#188038";
+    "wf_ROUTER_TRANS::Start" [label="Start", shape=circle, style=filled, fillcolor="#188038", fontcolor=white, width=0.5];
+    "wf_ROUTER_TRANS::s_ROUTER_TRANS" [label="s_ROUTER_TRANS\n(Session, reusable)\nmapping: m_Router_transfromation", shape=box, style="rounded,filled", fillcolor="#e6f4ea"];
+    "wf_ROUTER_TRANS::Start" -> "wf_ROUTER_TRANS::s_ROUTER_TRANS" [label="[fails→wf fails]"];
+  }
+  subgraph cluster_wf_1 {
+    label="wf_FILTER_TRANSFORMATION  (schedule: ONDEMAND)"; style="rounded"; color="#188038"; fontcolor="#188038";
+    "wf_FILTER_TRANSFORMATION::Start" [label="Start", shape=circle, style=filled, fillcolor="#188038", fontcolor=white, width=0.5];
+    "wf_FILTER_TRANSFORMATION::s_FILTER_TRANSFORMATION" [label="s_FILTER_TRANSFORMATION\n(Session, reusable)\nmapping: m_FILTER_TRANSFORMATION", shape=box, style="rounded,filled", fillcolor="#e6f4ea"];
+    "wf_FILTER_TRANSFORMATION::Start" -> "wf_FILTER_TRANSFORMATION::s_FILTER_TRANSFORMATION" [label=""];
+  }
+  subgraph cluster_wf_2 {
+    label="wf_AGGREGATOR_TRANS  (schedule: ONDEMAND)"; style="rounded"; color="#188038"; fontcolor="#188038";
+    "wf_AGGREGATOR_TRANS::Start" [label="Start", shape=circle, style=filled, fillcolor="#188038", fontcolor=white, width=0.5];
+    "wf_AGGREGATOR_TRANS::s_AGGREGATOR_TRANS" [label="s_AGGREGATOR_TRANS\n(Session, reusable)\nmapping: m_AGGREGATOR_TRANS", shape=box, style="rounded,filled", fillcolor="#e6f4ea"];
+    "wf_AGGREGATOR_TRANS::Start" -> "wf_AGGREGATOR_TRANS::s_AGGREGATOR_TRANS" [label=""];
+  }
+  subgraph cluster_wf_3 {
+    label="wf_MASTER_OUTER_JOIN  (schedule: ONDEMAND)"; style="rounded"; color="#188038"; fontcolor="#188038";
+    "wf_MASTER_OUTER_JOIN::Start" [label="Start", shape=circle, style=filled, fillcolor="#188038", fontcolor=white, width=0.5];
+    "wf_MASTER_OUTER_JOIN::s_MASTER_OUTER_JOIN" [label="s_MASTER_OUTER_JOIN\n(Session, reusable)\nmapping: m_MASTER_OUTER_JOIN", shape=box, style="rounded,filled", fillcolor="#e6f4ea"];
+    "wf_MASTER_OUTER_JOIN::Start" -> "wf_MASTER_OUTER_JOIN::s_MASTER_OUTER_JOIN" [label="[fails→wf fails]"];
+  }
+  subgraph cluster_wf_4 {
+    label="wf_DETAILS_OUTER_JOIN  (schedule: ONDEMAND)"; style="rounded"; color="#188038"; fontcolor="#188038";
+    "wf_DETAILS_OUTER_JOIN::Start" [label="Start", shape=circle, style=filled, fillcolor="#188038", fontcolor=white, width=0.5];
+    "wf_DETAILS_OUTER_JOIN::s_DETAILS_OUTER_JOIN" [label="s_DETAILS_OUTER_JOIN\n(Session, reusable)\nmapping: m_DETAILS_OUTER_JOIN", shape=box, style="rounded,filled", fillcolor="#e6f4ea"];
+    "wf_DETAILS_OUTER_JOIN::Start" -> "wf_DETAILS_OUTER_JOIN::s_DETAILS_OUTER_JOIN" [label=""];
+  }
+  subgraph cluster_wf_5 {
+    label="wf_FULL_OUTER_JOIN  (schedule: ONDEMAND)"; style="rounded"; color="#188038"; fontcolor="#188038";
+    "wf_FULL_OUTER_JOIN::Start" [label="Start", shape=circle, style=filled, fillcolor="#188038", fontcolor=white, width=0.5];
+    "wf_FULL_OUTER_JOIN::s_FULL_OUTER_JOIN" [label="s_FULL_OUTER_JOIN\n(Session, non-reusable)\nmapping: m_FULL_OUTER_JOIN", shape=box, style="rounded,filled", fillcolor="#e6f4ea"];
+    "wf_FULL_OUTER_JOIN::Start" -> "wf_FULL_OUTER_JOIN::s_FULL_OUTER_JOIN" [label="[fails→wf fails]"];
+  }
+  subgraph cluster_wf_6 {
+    label="wf_NORMAL_JOIN  (schedule: ONDEMAND)"; style="rounded"; color="#188038"; fontcolor="#188038";
+    "wf_NORMAL_JOIN::Start" [label="Start", shape=circle, style=filled, fillcolor="#188038", fontcolor=white, width=0.5];
+    "wf_NORMAL_JOIN::s_NORMAL_JOIN" [label="s_NORMAL_JOIN\n(Session, non-reusable)\nmapping: m_NORMAL_JOIN", shape=box, style="rounded,filled", fillcolor="#e6f4ea"];
+    "wf_NORMAL_JOIN::Start" -> "wf_NORMAL_JOIN::s_NORMAL_JOIN" [label="[fails→wf fails]"];
+  }
+  subgraph cluster_wf_7 {
+    label="wf_RANK_TRANSFORMATION  (schedule: ONDEMAND)"; style="rounded"; color="#188038"; fontcolor="#188038";
+    "wf_RANK_TRANSFORMATION::Start" [label="Start", shape=circle, style=filled, fillcolor="#188038", fontcolor=white, width=0.5];
+    "wf_RANK_TRANSFORMATION::s_RANK_TRANSFORMATION" [label="s_RANK_TRANSFORMATION\n(Session, non-reusable)\nmapping: m_RANK_TRANSFORMATION", shape=box, style="rounded,filled", fillcolor="#e6f4ea"];
+    "wf_RANK_TRANSFORMATION::Start" -> "wf_RANK_TRANSFORMATION::s_RANK_TRANSFORMATION" [label="[fails→wf fails]"];
+  }
+  subgraph cluster_wf_8 {
+    label="wf_SEQUENC_TRANSFORMATION  (schedule: ONDEMAND)"; style="rounded"; color="#188038"; fontcolor="#188038";
+    "wf_SEQUENC_TRANSFORMATION::Start" [label="Start", shape=circle, style=filled, fillcolor="#188038", fontcolor=white, width=0.5];
+    "wf_SEQUENC_TRANSFORMATION::s_SEQUENC_TRANSFORMATION" [label="s_SEQUENC_TRANSFORMATION\n(Session, non-reusable)\nmapping: m_SEQUENC_TRANSFORMATION", shape=box, style="rounded,filled", fillcolor="#e6f4ea"];
+    "wf_SEQUENC_TRANSFORMATION::Start" -> "wf_SEQUENC_TRANSFORMATION::s_SEQUENC_TRANSFORMATION" [label="[fails→wf fails]"];
+  }
+  subgraph cluster_wf_9 {
+    label="wf_LOOKUP_TRANSFORMATION  (schedule: ONDEMAND)"; style="rounded"; color="#188038"; fontcolor="#188038";
+    "wf_LOOKUP_TRANSFORMATION::Start" [label="Start", shape=circle, style=filled, fillcolor="#188038", fontcolor=white, width=0.5];
+    "wf_LOOKUP_TRANSFORMATION::s_LOOKUP_TRANSFORMATION" [label="s_LOOKUP_TRANSFORMATION\n(Session, non-reusable)\nmapping: m_LOOKUP_TRANSFORMATION", shape=box, style="rounded,filled", fillcolor="#e6f4ea"];
+    "wf_LOOKUP_TRANSFORMATION::Start" -> "wf_LOOKUP_TRANSFORMATION::s_LOOKUP_TRANSFORMATION" [label="[fails→wf fails]"];
+  }
+  subgraph cluster_wf_10 {
+    label="wf_LOOKUP_UNCONNECTED  (schedule: ONDEMAND)"; style="rounded"; color="#188038"; fontcolor="#188038";
+    "wf_LOOKUP_UNCONNECTED::Start" [label="Start", shape=circle, style=filled, fillcolor="#188038", fontcolor=white, width=0.5];
+    "wf_LOOKUP_UNCONNECTED::s_LOOKUP_UNCONNECTED" [label="s_LOOKUP_UNCONNECTED\n(Session, non-reusable)\nmapping: m_LOOKUP_UNCONNECTED", shape=box, style="rounded,filled", fillcolor="#e6f4ea"];
+    "wf_LOOKUP_UNCONNECTED::Start" -> "wf_LOOKUP_UNCONNECTED::s_LOOKUP_UNCONNECTED" [label="[fails→wf fails]"];
+  }
+  subgraph cluster_wf_11 {
+    label="wf_UNION_TRANSFORMATION  (schedule: ONDEMAND)"; style="rounded"; color="#188038"; fontcolor="#188038";
+    "wf_UNION_TRANSFORMATION::Start" [label="Start", shape=circle, style=filled, fillcolor="#188038", fontcolor=white, width=0.5];
+    "wf_UNION_TRANSFORMATION::s_UNION_TRANSFORMATION" [label="s_UNION_TRANSFORMATION\n(Session, non-reusable)\nmapping: m_UNION_TRANSFORMATION", shape=box, style="rounded,filled", fillcolor="#e6f4ea"];
+    "wf_UNION_TRANSFORMATION::Start" -> "wf_UNION_TRANSFORMATION::s_UNION_TRANSFORMATION" [label="[fails→wf fails]"];
+  }
+  subgraph cluster_wf_12 {
+    label="wf_NORMALIZER_TRANSFORMATION  (schedule: ONDEMAND)"; style="rounded"; color="#188038"; fontcolor="#188038";
+    "wf_NORMALIZER_TRANSFORMATION::Start" [label="Start", shape=circle, style=filled, fillcolor="#188038", fontcolor=white, width=0.5];
+    "wf_NORMALIZER_TRANSFORMATION::s_NORMALIZER_TRANSFORMATION" [label="s_NORMALIZER_TRANSFORMATION\n(Session, non-reusable)\nmapping: m_NORMALIZER_TRANSFORMATION", shape=box, style="rounded,filled", fillcolor="#e6f4ea"];
+    "wf_NORMALIZER_TRANSFORMATION::Start" -> "wf_NORMALIZER_TRANSFORMATION::s_NORMALIZER_TRANSFORMATION" [label="[fails→wf fails]"];
+  }
+  subgraph cluster_wf_13 {
+    label="wf_CUSTOMERDETAILS  (schedule: ONDEMAND)"; style="rounded"; color="#188038"; fontcolor="#188038";
+    "wf_CUSTOMERDETAILS::Start" [label="Start", shape=circle, style=filled, fillcolor="#188038", fontcolor=white, width=0.5];
+    "wf_CUSTOMERDETAILS::s_CUSTOMERDETAILS" [label="s_CUSTOMERDETAILS\n(Session, reusable)\nmapping: m_CUSTOMERDETAILS", shape=box, style="rounded,filled", fillcolor="#e6f4ea"];
+    "wf_CUSTOMERDETAILS::Start" -> "wf_CUSTOMERDETAILS::s_CUSTOMERDETAILS" [label=""];
+  }
+}
